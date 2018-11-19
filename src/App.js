@@ -4,6 +4,7 @@ import './App.css';
 import FileDrop from 'react-file-drop';
 import base64 from 'base-64';
 
+// TODO: connect to the local server for node and start adding these images to the db
 class App extends Component {
   //TODO: find a way to dynamically save file(s) rather than having it stuck to state - using state when maybe we don't need to
   state = { testImage: '' }
