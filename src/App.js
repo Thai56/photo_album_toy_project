@@ -1,15 +1,21 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import FileDrop from 'react-file-drop';
-import base64 from 'base-64';
+import axios from 'axios';
 
-// TODO: connect to the local server for node and start adding these images to the db
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  "Content-Type": "application/json",
+};
+
 class App extends Component {
   //TODO: find a way to dynamically save file(s) rather than having it stuck to state - using state when maybe we don't need to
-  state = { testImage: '' }
+  state = {
+    testImage: '',
+    message: '',
+  }
+
   handleDrop = (files, e) => {
-    //const encoded = base64.encode(file);
     let encoded = '';
     console.log('files ', files[0]);
     this.getBase64(files[0], (result) => {
@@ -29,6 +35,35 @@ class App extends Component {
         console.log('Error: ', error);
     };
   }
+
+  saveImage = () => {
+    console.log('saving test image')
+    axios.post('http://localhost:4000/photos',
+      {
+        //TODO: Try without the cors extension to see if we can fix this
+        url: this.state.testImage,
+      },
+      { headers }
+    ).then((res) => {
+      console.log('here is your response ', res)
+      this.setState(() => ({
+        testImage: '',
+        message: 'Save was successful!',
+      }),
+        () => setTimeout(() => this.setState(() => ({ message: '' })), 3000)
+      );
+    },
+      err => console.error('there was an issue saving the image before the catch: ', err)
+    )
+      .catch(err => {
+        this.setState(
+          () => ({ message: 'there was an issue saving the image before the catch' }),
+          setTimeout(() => this.setState(() => ({ message: '' })), 3000)
+        )
+        console.error('there was a problem getting saving the image: ', err)
+      });
+  }
+
   render() {
     return (
       <div className="App">
@@ -37,17 +72,22 @@ class App extends Component {
             Drop File here
            </FileDrop>
         </div>
-      {
-        this.state.testImage &&
-        <div
-          style={{
-            height: 400,
-            width: '100vw',
-            border: '1px solid black',
-            background:"url("+ this.state.testImage +")",
-          }}
-        />
-      }
+        {
+          this.state.testImage &&
+          <div>
+            <div
+              style={{
+                height: 400,
+                width: '100vw',
+                border: '1px solid black',
+                background:"url("+ this.state.testImage +")",
+              }}
+            />
+            <button onClick={this.saveImage}>Save</button>
+          </div>
+        }
+
+        {this.state.message && <div>{this.state.message}</div>}
       </div>
     );
   }

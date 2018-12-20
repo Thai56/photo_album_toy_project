@@ -1,6 +1,18 @@
 const express = require('express');
 const { Client } = require('pg');
+const cors = require('cors');
 const app = express();
+const port = 4000;
+const bodyParser = require('body-parser');
+
+//middleware  =  =  =  =  =  =
+app.use(cors({
+  origin: 'http://localhost:3001',
+  "Content-Type": "application/json",
+}))
+
+app.use(bodyParser.json({limit: '10mb', extended: true}))
+app.use(bodyParser.urlencoded({limit: '10mb', extended: true}))
 
 const client= new Client({
   user: 'postgres',
@@ -16,23 +28,25 @@ client.connect();
 //TODO: make a disconnect method that we can call here (optional)
 //-- use the client.end() method
 
-client.query('SELECT * FROM land_registry_price_paid_uk', (err, res) => {
-  console.log(res.rows)
-});
-
-client.query(`INSERT INTO land_registry_price_paid_uk (street, city, price) VALUES ('fairview', 'fairfield', 4500)`, (err, res) => {
-  console.log(res)
-  //client.end()
-});
-
-//TODO: change the table name and data
-app.get('/', (req, response) => {
-  client.query('SELECT * FROM land_registry_price_paid_uk', (err, res) => {
+app.get('/photos', (req, response) => {
+  client.query('SELECT * FROM photos', (err, res) => {
     console.log(res.rows)
     response.status(200).send(res.rows);
   });
 });
 
-const port = 4000;
+app.post('/photos', (req, response) => {
+  const imageUrl = req.body.url;
+
+  //add to db
+  client.query(`INSERT INTO photos (url) VALUES ('${imageUrl}')`, (err, res) => {
+    if (err) {
+      response.status(500).send(err);
+    }
+
+    response.status(200).send(res);
+  });
+});
+
 app.listen(port, () => console.log('now listening on port '))
 
