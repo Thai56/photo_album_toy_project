@@ -1,16 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
-import FileDrop from 'react-file-drop';
 import axios from 'axios';
 
-import Pictures from './Pictures';
+import { headers } from './constants';
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  "Content-Type": "application/json",
-};
-
-class App extends Component {
+class FileDrop extends Component {
   //TODO: find a way to dynamically save file(s) rather than having it stuck to state - using state when maybe we don't need to
   state = {
     testImage: '',
@@ -68,8 +62,8 @@ class App extends Component {
 
   render() {
     return (
+
       <div className="App">
-        <Pictures />
         <div style={{ height: 100, width: '80vh', border: '1px solid white' }}>
           <FileDrop onDrop={this.handleDrop}>
             Drop File here
@@ -90,10 +84,11 @@ class App extends Component {
           </div>
         }
 
-        {this.state.message && <div>{this.state.message}</div>}
+        {this.state.message &&
+            <div>{this.state.message}</div>}
       </div>
     );
   }
 }
 
-export default App;
+export default FileDrop;
