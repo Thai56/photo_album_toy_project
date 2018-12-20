@@ -1,3 +1,10 @@
+/*
+ *TODO: next step for self:
+ *  [ ] make crud app
+ *  [ ] docker compose to start up the node server, postgres db, and react app
+ *  [ ] start testing the ui using jasmine or enzyme
+ *  [ ] travis-ci or jenkins to start up running a ci process
+ */
 import React, { Component } from 'react';
 import './App.css';
 import FileDrop from 'react-file-drop';
