@@ -1,14 +1,7 @@
-import axios from 'axios';
-import {
+import axios from 'axios'; import {
   baseUrl,
   headers,
 } from '../constants';
-
-export const savePhotos = (url) => { // url is the string to save
-  return axios.post( baseUrl, { url }, { headers });
-};
-
-export const getPhotos = () => axios.get(baseUrl, { headers });
 
 export const getBase64 = (file, cb) => {
   let reader = new FileReader();
@@ -19,4 +12,14 @@ export const getBase64 = (file, cb) => {
   reader.onerror = function (error) {
     console.log('Error: ', error);
   };
+}
+
+export const savePhotos = (url) => { // url is the string to save
+  return axios.post( baseUrl, { url }, { headers });
+};
+
+export const getPhotos = () => axios.get(baseUrl, { headers });
+
+export const deletePhotoById = id => {
+  return axios.delete(`${baseUrl}/${id}`, { headers });
 }

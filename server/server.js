@@ -30,7 +30,6 @@ client.connect();
 
 app.get('/photos', (req, response) => {
   client.query('SELECT * FROM photos', (err, res) => {
-    console.log(res.rows)
     response.status(200).send(res.rows);
   });
 });
@@ -48,10 +47,9 @@ app.post('/photos', (req, response) => {
   });
 });
 
-//TODO: remove this if not needed
-app.delete('/photos', (req, response) => {
-  // delete all from db
-  client.query(`DELETE FROM photos`, (err, res) => {
+app.delete('/photos/:id', (req, response) => {
+  // delete by id from photos
+  client.query(`DELETE FROM photos WHERE id=${req.params.id}`, (err, res) => {
     if (err) {
       response.status(500).send(err);
     }

@@ -7,7 +7,7 @@
  */
 
 // Generel
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import './App.css';
 import FileDrop from 'react-file-drop';
 
@@ -19,24 +19,11 @@ import {
   getPhotos,
   savePhotos,
   getBase64,
+  deletePhotoById,
 } from './utils/photosHelper';
 
 // Constants
 import { displayMessageTime } from './constants';
-
-export const mapImageToBackground = ({ url }, i) => {
-  return (
-    <div
-      key={i}
-      style={{
-        height: 400,
-        width: '100vw',
-        border: '1px solid black',
-        background:"url("+ url +")",
-      }}
-    />
-  );
-};
 
 class App extends Component {
   //TODO: find a way to dynamically save file(s) rather than having it stuck to state - using state when maybe we don't need to
@@ -50,13 +37,36 @@ class App extends Component {
     this.getPhotos();
   }
 
+  mapImageToBackground = ({ url, id }, i) => {
+    return (
+      <Fragment key={i}>
+        <div
+          style={{
+            height: 400,
+            width: '100vw',
+            border: '1px solid black',
+            background:"url("+ url +")",
+          }}
+        />
+
+        <button onClick={() => this.deletePhotoById(id)}>delete</button>
+      </Fragment>
+    );
+  };
+
+  deletePhotoById = id =>
+    deletePhotoById(id)
+      .then(this.handleImageRequestSuccess('Successfully deleted image!'))
+      .catch(err => console.log('error deleting photo ', err));
+
+
   getPhotos = () => {
     getPhotos().then(({ data }) => {
       // TODO: Find a better way to filter out these images - this is a quick fix as it is getting late 11:43pm
       const rawImages = data.filter(({ url }) => url.split(':').length > 1); // locating base64 by ":" and comparing the length to be greater athan 1
 
-      this.setState((prev) => ({
-        pictures: [...prev.pictures, ...rawImages].map(mapImageToBackground),
+      this.setState(() => ({
+        pictures: rawImages.map(this.mapImageToBackground),
       }))
     })
     .catch(err => console.error('error fetching the pictures: ', err))
@@ -74,17 +84,17 @@ class App extends Component {
   clearDisplayMessageAfterSetTime = () =>
     setTimeout(() => this.setState(() => ({ message: '' })), displayMessageTime);
 
-  handleImageSaveSuccess = () => {
-    console.log('SUCCESS')
-    this.setState(() => ({
-      imageToSave: '',
-      message: 'Save was successful!',
-    }),
-      () => {
-        this.clearDisplayMessageAfterSetTime();
-        this.getPhotos();
-      }
-    );
+  handleImageRequestSuccess = message => {
+    return () =>
+      this.setState(() => ({
+        imageToSave: '',
+        message,
+      }),
+        () => {
+          this.clearDisplayMessageAfterSetTime();
+          this.getPhotos();
+        }
+      );
   }
 
   handleImageSaveFailure = err => {
@@ -100,7 +110,7 @@ class App extends Component {
   saveImage = () =>
     savePhotos(this.state.imageToSave)
       .then(
-        this.handleImageSaveSuccess,
+        this.handleImageRequestSuccess('Save was successful!'),
         err => console.error('there was an issue saving the image before the catch: ', err)
       )
       .catch(this.handleImageSaveFailure);
