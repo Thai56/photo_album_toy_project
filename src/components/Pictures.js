@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 
 const Pictures = ({ pictures }) => {
   return (
-    <div>
-      Here will be your images
+    <Fragment>
       {pictures.length > 0 && pictures}
-    </div>
+    </Fragment>
   );
 }
 

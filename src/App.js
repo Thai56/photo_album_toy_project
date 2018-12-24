@@ -18,6 +18,7 @@ import Pictures from './components/Pictures';
 import {
   getPhotos,
   savePhotos,
+  getBase64,
 } from './utils/photosHelper';
 
 // Constants
@@ -46,6 +47,10 @@ class App extends Component {
   }
 
   componentDidMount() {
+    this.getPhotos();
+  }
+
+  getPhotos = () => {
     getPhotos().then(({ data }) => {
       // TODO: Find a better way to filter out these images - this is a quick fix as it is getting late 11:43pm
       const rawImages = data.filter(({ url }) => url.split(':').length > 1); // locating base64 by ":" and comparing the length to be greater athan 1
@@ -59,23 +64,11 @@ class App extends Component {
 
   handleDrop = (files, e) => {
     let encoded = '';
-    console.log('files ', files[0]);
-    this.getBase64(files[0], (result) => {
+    getBase64(files[0], (result) => {
       encoded = result;
       console.log('encoded ', encoded);
       this.setState(() => ({ imageToSave: encoded }))
     });
-  }
-
-  getBase64(file, cb) {
-    let reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function () {
-        cb(reader.result)
-    };
-    reader.onerror = function (error) {
-        console.log('Error: ', error);
-    };
   }
 
   clearDisplayMessageAfterSetTime = () =>
@@ -87,7 +80,10 @@ class App extends Component {
       imageToSave: '',
       message: 'Save was successful!',
     }),
-      this.clearDisplayMessageAfterSetTime
+      () => {
+        this.clearDisplayMessageAfterSetTime();
+        this.getPhotos();
+      }
     );
   }
 
@@ -117,10 +113,10 @@ class App extends Component {
         <div style={{ height: 100, width: '80vh', border: '1px solid white' }}>
           <FileDrop onDrop={this.handleDrop}>
             Drop File here
-           </FileDrop>
+          </FileDrop>
         </div>
 
-        {
+        { /*TODO: Make this a separate page*/
           this.state.imageToSave &&
           <div>
             <div

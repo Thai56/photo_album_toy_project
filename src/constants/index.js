@@ -6,6 +6,4 @@ export const headers = {
   "Content-Type": "application/json",
 };
 
-export const errorMessage = 'there was a problem getting saving the image:\n ';
-
 export const displayMessageTime = 3000;

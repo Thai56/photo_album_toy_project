@@ -48,5 +48,17 @@ app.post('/photos', (req, response) => {
   });
 });
 
+//TODO: remove this if not needed
+app.delete('/photos', (req, response) => {
+  // delete all from db
+  client.query(`DELETE FROM photos`, (err, res) => {
+    if (err) {
+      response.status(500).send(err);
+    }
+
+    response.status(200).send(res);
+  });
+})
+
 app.listen(port, () => console.log('now listening on port '))
 
