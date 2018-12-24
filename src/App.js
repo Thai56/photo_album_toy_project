@@ -5,23 +5,56 @@
  *  [ ] start testing the ui using jasmine or enzyme
  *  [ ] travis-ci or jenkins to start up running a ci process
  */
+
+// Generel
 import React, { Component } from 'react';
 import './App.css';
 import FileDrop from 'react-file-drop';
-import axios from 'axios';
 
-import Pictures from './Pictures';
+// Components
+import Pictures from './components/Pictures';
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  "Content-Type": "application/json",
+// Utils
+import {
+  getPhotos,
+  savePhotos,
+} from './utils/photosHelper';
+
+// Constants
+import { displayMessageTime } from './constants';
+
+export const mapImageToBackground = ({ url }, i) => {
+  return (
+    <div
+      key={i}
+      style={{
+        height: 400,
+        width: '100vw',
+        border: '1px solid black',
+        background:"url("+ url +")",
+      }}
+    />
+  );
 };
 
 class App extends Component {
   //TODO: find a way to dynamically save file(s) rather than having it stuck to state - using state when maybe we don't need to
   state = {
-    testImage: '',
+    imageToSave: '',
     message: '',
+    pictures: [],
+  }
+
+  componentDidMount() {
+    getPhotos().then(({ data }) => {
+      // TODO: Find a better way to filter out these images - this is a quick fix as it is getting late 11:43pm
+      const rawImages = data.filter(({ url }) => url.split(':').length > 1); // locating base64 by ":" and comparing the length to be greater athan 1
+
+      this.setState((prev) => ({
+        pictures: [...prev.pictures, ...rawImages].map(mapImageToBackground),
+      }))
+    })
+    .catch(err => console.error('error fetching the pictures: ', err))
   }
 
   handleDrop = (files, e) => {
@@ -30,7 +63,7 @@ class App extends Component {
     this.getBase64(files[0], (result) => {
       encoded = result;
       console.log('encoded ', encoded);
-      this.setState(() => ({ testImage: encoded }))
+      this.setState(() => ({ imageToSave: encoded }))
     });
   }
 
@@ -45,52 +78,57 @@ class App extends Component {
     };
   }
 
-  saveImage = () => {
-    console.log('saving test image')
-    axios.post('http://localhost:4000/photos',
-      {
-        //TODO: Try without the cors extension to see if we can fix this
-        url: this.state.testImage,
-      },
-      { headers }
-    ).then((res) => {
-      console.log('here is your response ', res)
-      this.setState(() => ({
-        testImage: '',
-        message: 'Save was successful!',
-      }),
-        () => setTimeout(() => this.setState(() => ({ message: '' })), 3000)
-      );
-    },
-      err => console.error('there was an issue saving the image before the catch: ', err)
-    )
-      .catch(err => {
-        this.setState(
-          () => ({ message: 'there was an issue saving the image before the catch' }),
-          setTimeout(() => this.setState(() => ({ message: '' })), 3000)
-        )
-        console.error('there was a problem getting saving the image: ', err)
-      });
+  clearDisplayMessageAfterSetTime = () =>
+    setTimeout(() => this.setState(() => ({ message: '' })), displayMessageTime);
+
+  handleImageSaveSuccess = () => {
+    console.log('SUCCESS')
+    this.setState(() => ({
+      imageToSave: '',
+      message: 'Save was successful!',
+    }),
+      this.clearDisplayMessageAfterSetTime
+    );
   }
+
+  handleImageSaveFailure = err => {
+    this.setState(() => ({
+      message: 'there was an issue saving the image before the catch',
+    }),
+      this.clearDisplayMessageAfterSetTime
+    )
+
+    console.error('there was a problem getting saving the image: ', err)
+  }
+
+  saveImage = () =>
+    savePhotos(this.state.imageToSave)
+      .then(
+        this.handleImageSaveSuccess,
+        err => console.error('there was an issue saving the image before the catch: ', err)
+      )
+      .catch(this.handleImageSaveFailure);
 
   render() {
     return (
       <div className="App">
-        <Pictures />
+        <Pictures pictures={this.state.pictures} />
+
         <div style={{ height: 100, width: '80vh', border: '1px solid white' }}>
           <FileDrop onDrop={this.handleDrop}>
             Drop File here
            </FileDrop>
         </div>
+
         {
-          this.state.testImage &&
+          this.state.imageToSave &&
           <div>
             <div
               style={{
                 height: 400,
                 width: '100vw',
                 border: '1px solid black',
-                background:"url("+ this.state.testImage +")",
+                background:"url("+ this.state.imageToSave +")",
               }}
             />
             <button onClick={this.saveImage}>Save</button>
